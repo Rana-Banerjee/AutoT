@@ -1,0 +1,10 @@
+Test Log at time: 1729153942.821765
+2024-10-17 14:02:43,146 - my_logger - DEBUG - Test Log at time: 1729153963.146312
+2024-10-17 14:03:39,283 - Auto_Trader - INFO - Test Log at time
+2024-10-17 14:06:02,927 - Auto_Trader - INFO - <<<<<<<<<<<<<<<<START>>>>>>>>>>>>>>>>>
+2024-10-17 14:06:02,927 - Auto_Trader - INFO - Logged in
+2024-10-17 14:06:02,928 - Auto_Trader - INFO - Positions:
+2024-10-17 14:06:02,928 - Auto_Trader - INFO - Conditions evaluated
+2024-10-17 14:06:02,928 - Auto_Trader - INFO - Adjustments mapped
+2024-10-17 14:06:02,928 - Auto_Trader - INFO - Adjustments applied
+2024-10-17 14:06:02,929 - Auto_Trader - INFO - <<<<<<<<<<<<<<<<END>>>>>>>>>>>>>>>>>
