@@ -1,4 +1,4 @@
-name: Run Python Script every 5 mins
+name: Monitor Positions
 
 # on:
 #   schedule:

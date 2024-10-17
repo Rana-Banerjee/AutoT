@@ -2,6 +2,9 @@
 import logging
 from logging.handlers import RotatingFileHandler
 import os
+import json
+import requests
+from api_helper import ShoonyaApiPy
 
 # Logging Setup
 logger = logging.getLogger('Auto_Trader')
@@ -29,6 +32,9 @@ script_name = 'NIFTY NOV'
 threshold = None
 adj_leg=None
 
+# Initialize the API
+# api = ShoonyaApiPy()
+
 if API_KEY is None:
     logger.info("API_KEY not set")
     raise ValueError("API_KEY environment variable is not set")
@@ -42,11 +48,28 @@ def check_make_adjustments():
     logger.info("Got API key : " + API_KEY)
 
     # Login
+    # Login to the API
+    # login_response = api.login(userid=user_id, password=password, twoFA=twoFA, vendor_code=vendor_code, api_secret=api_secret, imei=imei)   
+    # if login_response['stat'] == 'Ok':
+    #     print("Login successful!")
+    # else:
+    #     print(f"Login failed: {login_response['message']}")
+    #     exit
+
     logger.info("Logged in")
 
     # Check positions
     logger.info("Positions:")
-    # Get only active positions and identify, what to do when there is an extra sell?
+    # Fetch current positions
+    # positions_response = api.get_positions()  # This function may vary based on the actual API implementation
+    
+    # if positions_response['stat'] == 'Ok':
+    #     print("Current Positions:")
+    #     for position in positions_response['data']:
+    #         print(json.dumps(position, indent=4))
+    # else:
+    #     print(f"Error fetching positions: {positions_response['message']}")
+    # # Get only active positions and identify, what to do when there is an extra sell?
     # Get Put Hedge: Strike, Entry, LTP, Delta?,  
     # Get Put Sell: Strike, Entry, LTP, Delta?, # Put with highest strike
     # Get Call Sell: Strike, Entry, LTP, Delta?, # Call with lowest strike
@@ -111,6 +134,7 @@ def check_make_adjustments():
         #     Exit call and call_hedge
         # # Build new positions:
         # # Check the LTP of the non_profitable sell leg
+        # Get Option Chain api
         # Start from strike price of the non_profitable leg
         # If the LTP of the corresponding Put/Call is higher than LTP of non-profitable leg:
         #     Convert to Iron Fly: Sell corresponding Put/Call at the same strike price
