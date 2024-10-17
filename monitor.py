@@ -14,7 +14,7 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 # Access the API key from environment variables
-API_KEY = os.getenv('TEST_API_KEY')
+API_KEY = os.getenv('TEST_API_VARIABLE')
 
 if API_KEY is None:
     raise ValueError("API_KEY environment variable is not set")
