@@ -1,6 +1,7 @@
 # Imports
 import logging
 from logging.handlers import RotatingFileHandler
+import os
 
 # Logging Setup
 logger = logging.getLogger('Auto_Trader')
@@ -12,23 +13,34 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
-# Start Procedure
-logger.info("<<<<<<<<<<<<<<<<START>>>>>>>>>>>>>>>>>")
+# Access the API key from environment variables
+API_KEY = os.getenv('TEST_API_KEY')
 
-# Login
-logger.info("Logged in")
+if API_KEY is None:
+    raise ValueError("API_KEY environment variable is not set")
 
-# Check positions
-logger.info("Positions:")
+def check_make_adjustments():
+    # Start Procedure
+    logger.info("<<<<<<<<<<<<<<<<START>>>>>>>>>>>>>>>>>")
+    logger.info("Got API key : " + API_KEY)
 
-# Evaluate poistions and determine adjustments
-logger.info("Conditions evaluated")
+    # Login
+    logger.info("Logged in")
 
-# Evaluate Margin requirement and available margin/funds
-logger.info("Adjustments mapped")
+    # Check positions
+    logger.info("Positions:")
 
-# Apply adjustments, if required
-logger.info("Adjustments applied")
+    # Evaluate poistions and determine adjustments
+    logger.info("Conditions evaluated")
 
-# Exit
-logger.info("<<<<<<<<<<<<<<<<END>>>>>>>>>>>>>>>>>")
+    # Evaluate Margin requirement and available margin/funds
+    logger.info("Adjustments mapped")
+
+    # Apply adjustments, if required
+    logger.info("Adjustments applied")
+
+    # Exit
+    logger.info("<<<<<<<<<<<<<<<<END>>>>>>>>>>>>>>>>>")
+
+if __name__ == "__main__":
+    check_make_adjustments()
