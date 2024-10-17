@@ -7,7 +7,7 @@ import os
 logger = logging.getLogger('Auto_Trader')
 logger.setLevel(logging.DEBUG)  # Set the logging level for the logger
 # Rotating file handler (file size limit of 1 MB, keeps 5 backup files)
-file_handler = RotatingFileHandler('app.log', maxBytes=1_000_000, backupCount=5)
+file_handler = RotatingFileHandler('logs/app.log', maxBytes=1_000_000, backupCount=5)
 # Create a logging format
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 file_handler.setFormatter(formatter)
