@@ -25,6 +25,9 @@ jobs:
     - name: Run Python script
       env:
         API_KEY: ${{ secrets.TEST_API_KEY }}
+        EMAIL_USER: ${{ secrets.EMAIL_USER }}  # Email user from GitHub Secrets
+        EMAIL_PASS: ${{ secrets.EMAIL_PASS }}  # Email password from GitHub Secrets
+        EMAIL_TO: ${{ secrets.EMAIL_TO }}      # Email recipient from GitHub Secrets
       run: python3 monitor.py
     - name: Upload log file
       uses: actions/upload-artifact@v4

@@ -5,7 +5,38 @@ import os
 import json
 import requests
 from api_helper import ShoonyaApiPy
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import os
 
+def send_custom_email(subject, body):
+    # Email configuration
+    sender_email = os.getenv("EMAIL_USER")
+    receiver_email = os.getenv("EMAIL_TO")
+    password = os.getenv("EMAIL_PASS")
+
+    # Create email
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+    msg['Subject'] = subject
+
+    # Add body to email
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        # Connect to the Gmail SMTP server
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()  # Upgrade the connection to a secure encrypted SSL/TLS connection
+        server.login(sender_email, password)  # Login to your email account
+        text = msg.as_string()
+        server.sendmail(sender_email, receiver_email, text)  # Send the email
+        print("Email sent successfully!")
+    except Exception as e:
+        print(f"Error sending email: {e}")
+    finally:
+        server.quit()
 # Logging Setup
 logger = logging.getLogger('Auto_Trader')
 logger.setLevel(logging.DEBUG)  # Set the logging level for the logger
@@ -146,6 +177,13 @@ def check_make_adjustments():
 
     # Exit
     logger.info("<<<<<<<<<<<<<<<<END>>>>>>>>>>>>>>>>>")
+    # Send mail with log information
+    subject = "Monitor Log"
+    with open('logs/app.log', 'r') as f:
+        body = f.read() 
+        # Send the email
+        send_custom_email(subject, body)
+   
 
 if __name__ == "__main__":
     check_make_adjustments()
