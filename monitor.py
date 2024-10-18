@@ -16,6 +16,8 @@ def send_custom_email(subject, body):
     receiver_email = os.getenv("EMAIL_TO")
     password = os.getenv("EMAIL_PASS")
 
+    logger.info(sender_email+"||"+receiver_email+"||"+password)
+
     # Create email
     msg = MIMEMultipart()
     msg['From'] = sender_email
