@@ -28,6 +28,12 @@ jobs:
         EMAIL_USER: ${{ secrets.EMAIL_USER }}  # Email user from GitHub Secrets
         EMAIL_PASS: ${{ secrets.EMAIL_PASS }}  # Email password from GitHub Secrets
         EMAIL_TO: ${{ secrets.EMAIL_TO }}      # Email recipient from GitHub Secrets
+        TOKEN: ${{ secrets.TOKEN }}      # Email recipient from GitHub Secrets
+        userid: ${{ secrets.userid }}
+        password: ${{ secrets.password }}
+        vendor_code: ${{ secrets.vendor_code }}
+        api_secret: ${{ secrets.api_secret }}
+        imei: ${{ secrets.imei }}
       run: python3 monitor.py
     - name: Upload log file
       uses: actions/upload-artifact@v4

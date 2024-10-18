@@ -1,1 +1,4 @@
 .vscode
+monitor_local.py
+*.log
+*.pyc

@@ -9,7 +9,18 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import os
+import pyotp
 
+# Global variables
+lot_size = 2
+IC_Delta_Threshold=0.4
+IF_Delta_Threshold=0.5
+target=100
+stop_loss=100
+hedge_points=200
+script_name = 'NIFTY NOV'
+
+# Helper function
 def send_custom_email(subject, body):
     # Email configuration
     sender_email = os.getenv("EMAIL_USER")
@@ -39,6 +50,7 @@ def send_custom_email(subject, body):
         print(f"Error sending email: {e}")
     finally:
         server.quit()
+
 # Logging Setup
 logger = logging.getLogger('Auto_Trader')
 logger.setLevel(logging.DEBUG)  # Set the logging level for the logger
@@ -49,52 +61,44 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
-# Access the API key from environment variables
-API_KEY = os.getenv('API_KEY')
-
-# Global variables
-lot_size = 2
-IC_Delta_Threshold=0.4
-IF_Delta_Threshold=0.5
-target=100
-stop_loss=100
-hedge_points=200
-
-script_name = 'NIFTY NOV'
-
-threshold = None
-adj_leg=None
-
-# Initialize the API
-# api = ShoonyaApiPy()
-
-if API_KEY is None:
-    logger.info("API_KEY not set")
-    raise ValueError("API_KEY environment variable is not set")
+#  Initialize the API
+api = ShoonyaApiPy()
 
 def check_make_adjustments():
     # Start Procedure
     logger.info("<<<<<<<<<<<<<<<<START>>>>>>>>>>>>>>>>>")
-    # do_adjustment = False
-    # extra_sell=False
 
-    logger.info("Got API key : " + API_KEY)
-
-    # Login
+    # do_put_adjustment = False
+    # do_call_adjustment = False
+    # do_extra_call_sell = False
+    # do extra_put_sell = False
+    
     # Login to the API
-    # login_response = api.login(userid=user_id, password=password, twoFA=twoFA, vendor_code=vendor_code, api_secret=api_secret, imei=imei)   
-    # if login_response['stat'] == 'Ok':
-    #     print("Login successful!")
-    # else:
-    #     print(f"Login failed: {login_response['message']}")
-    #     exit
+    # Your TOTP secret token
+    
+    # TOKEN = os.getenv("TOKEN")
+    # userid=os.getenv("userid")
+    # password=os.getenv("password")
+    # vendor_code=os.getenv("vendor_code")
+    # api_secret=os.getenv("api_secret")
+    # imei=os.getenv("imei")
 
-    logger.info("Logged in")
 
-    # Check positions
-    logger.info("Positions:")
+
+    twoFA = pyotp.TOTP(TOKEN).now()
+
+    login_response = api.login(userid=userid, password=password, twoFA=twoFA, vendor_code=vendor_code, api_secret=api_secret, imei=imei)   
+    if login_response['stat'] == 'Ok':
+        logger.info("Login successful!")
+    else:
+        logger.info(f"Login failed: {login_response['message']}")
+        exit(0)
+
     # Fetch current positions
-    # positions_response = api.get_positions()  # This function may vary based on the actual API implementation
+    logger.info("Positions:")
+    positions = api.get_positions()
+
+    api.logout()
     
     # if positions_response['stat'] == 'Ok':
     #     print("Current Positions:")
@@ -184,7 +188,7 @@ def check_make_adjustments():
     with open('logs/app.log', 'r') as f:
         body = f.read() 
         # Send the email
-        send_custom_email(subject, body)
+        # send_custom_email(subject, body)
    
 
 if __name__ == "__main__":
