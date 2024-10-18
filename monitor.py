@@ -76,14 +76,12 @@ def check_make_adjustments():
     # Login to the API
     # Your TOTP secret token
 
-    # TOKEN = os.getenv("TOKEN")
-    # userid=os.getenv("userid")
-    # password=os.getenv("password")
-    # vendor_code=os.getenv("vendor_code")
-    # api_secret=os.getenv("api_secret")
-    # imei=os.getenv("imei")
-
-
+    TOKEN = os.getenv("TOKEN")
+    userid=os.getenv("userid")
+    password=os.getenv("password")
+    vendor_code=os.getenv("vendor_code")
+    api_secret=os.getenv("api_secret")
+    imei=os.getenv("imei")
 
     twoFA = pyotp.TOTP(TOKEN).now()
 
