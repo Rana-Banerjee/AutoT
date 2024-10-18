@@ -1,2 +1,2 @@
 requests
-https://github.com/Shoonya-Dev/ShoonyaApi-py/blob/master/dist/NorenRestApi-0.0.30-py2.py3-none-any.whl
+https://github.com/Shoonya-Dev/ShoonyaApi-py/raw/refs/heads/master/dist/NorenRestApi-0.0.30-py2.py3-none-any.whl
