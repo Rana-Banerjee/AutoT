@@ -75,7 +75,7 @@ def check_make_adjustments():
     
     # Login to the API
     # Your TOTP secret token
-    
+
     # TOKEN = os.getenv("TOKEN")
     # userid=os.getenv("userid")
     # password=os.getenv("password")
@@ -98,8 +98,7 @@ def check_make_adjustments():
     logger.info("Positions:")
     positions = api.get_positions()
 
-    api.logout()
-    
+       
     # if positions_response['stat'] == 'Ok':
     #     print("Current Positions:")
     #     for position in positions_response['data']:
@@ -181,6 +180,8 @@ def check_make_adjustments():
 
     logger.info("Adjustments applied")
 
+    api.logout()
+    logger.info("Logged out")
     # Exit
     logger.info("<<<<<<<<<<<<<<<<END>>>>>>>>>>>>>>>>>")
     # Send mail with log information
@@ -188,7 +189,7 @@ def check_make_adjustments():
     with open('logs/app.log', 'r') as f:
         body = f.read() 
         # Send the email
-        # send_custom_email(subject, body)
+        send_custom_email(subject, body)
    
 
 if __name__ == "__main__":
