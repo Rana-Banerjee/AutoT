@@ -185,14 +185,14 @@ def get_initial_positions(base_strike_price):
     ce_hedge, ce_hedge_premium = get_nearest_strike_strike(ce_breakeven, CEstrikedf)
     pe_hedge, pe_hedge_premium = get_nearest_strike_strike(pe_breakeven, PEstrikedf)
     response = {
-        'PE_Hedge':['B', 'P','NFO', pe_hedge, lots*lot_size, lots, 'MKT',0,None,'DAY', f'Initial PE Hedge with premium: {pe_hedge_premium}'],
-        'PE_Sell':['S', 'P','NFO', pe_sell, lots*lot_size, lots, 'MKT',0,None,'DAY', f'Initial PE Sell with premium: {pe_premium}'],
-        'CE_Sell':['S', 'C','NFO', ce_sell, lots*lot_size, lots, 'MKT',0,None,'DAY', f'Initial CE Sell with premium: {ce_premium}'],
-        'CE_Hedge':['B', 'C','NFO', ce_hedge, lots*lot_size, lots, 'MKT',0,None,'DAY', f'Initial CE Hedge with premium: {ce_hedge_premium}'],
+        'PE_Hedge':['B', 'P','NFO', pe_hedge, lots*lot_size, lots, 'MKT',0,None,'DAY', f'Initial PE Hedg with premium: {pe_hedge_premium}'],
+        'PE_Sell': ['S', 'P','NFO', pe_sell,  lots*lot_size, lots, 'MKT',0,None,'DAY', f'Initial PE Sell with premium: {pe_premium}'],
+        'CE_Sell': ['S', 'C','NFO', ce_sell,  lots*lot_size, lots, 'MKT',0,None,'DAY', f'Initial CE Sell with premium: {ce_premium}'],
+        'CE_Hedge':['B', 'C','NFO', ce_hedge, lots*lot_size, lots, 'MKT',0,None,'DAY', f'Initial CE Hedg with premium: {ce_hedge_premium}'],
     }
     print(response)
     for res in response:
-        logger.info(f"{res} : {response[res][0]} {response[res][4]} qty {response[res][3]} | Premium: {response[res][10][31:]}")
+        logger.info(f"{res} : {response[res][0]} {response[res][4]} qty {response[res][3]} | Premium: {response[res][10][30:]}")
     return response
     
 # Step 3: Create initial positions (Day 1)
