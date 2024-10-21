@@ -1,37 +1,7 @@
-2024-10-21 19:44:25,820 - Auto_Trader - INFO - Login successful!
-2024-10-21 19:44:44,520 - Auto_Trader - INFO - Positions based on Future Price
-2024-10-21 19:44:44,535 - Auto_Trader - INFO -   buy_sell                tsym  qty                               remarks
-0        B  NIFTY28NOV24P24000   25   Initial PE Hedg with premium: 161.3
-1        S  NIFTY28NOV24P24900   25   Initial PE Sell with premium: 436.0
-2        S  NIFTY28NOV24C24900   25  Initial CE Sell with premium: 426.45
-3        B  NIFTY28NOV24C25800   25   Initial CE Hedg with premium: 94.65
-2024-10-21 19:44:44,572 - Auto_Trader - INFO - Cash required: 255.95000000000002
-2024-10-21 19:44:44,705 - Auto_Trader - INFO - Positions based on Current Price
-2024-10-21 19:44:44,715 - Auto_Trader - INFO -   buy_sell                tsym  qty                               remarks
-0        B  NIFTY28NOV24P23900   25  Initial PE Hedg with premium: 144.75
-1        S  NIFTY28NOV24P24800   25   Initial PE Sell with premium: 406.2
-2        S  NIFTY28NOV24C24800   25   Initial CE Sell with premium: 486.7
-3        B  NIFTY28NOV24C25700   25  Initial CE Hedg with premium: 120.15
-2024-10-21 19:44:44,748 - Auto_Trader - INFO - Cash required: 264.9
-2024-10-21 19:44:44,762 - Auto_Trader - INFO - Positions based on Support/Resistance
-2024-10-21 19:44:44,771 - Auto_Trader - INFO -   buy_sell                tsym  qty                               remarks
-0        B  NIFTY28NOV24P24400   25   Initial PE Hedg with premium: 253.1
-1        S  NIFTY28NOV24P25300   25  Initial PE Sell with premium: 636.85
-2        S  NIFTY28NOV24C25300   25  Initial CE Sell with premium: 243.05
-3        B  NIFTY28NOV24C26200   25   Initial CE Hedg with premium: 46.45
-2024-10-21 19:44:44,804 - Auto_Trader - INFO - Cash required: 299.55
-2024-10-21 19:44:44,817 - Auto_Trader - INFO - Combined Positions
-2024-10-21 19:44:44,827 - Auto_Trader - INFO -   buy_sell                tsym  qty                               remarks
-0        B  NIFTY28NOV24P24000   25   Initial PE Hedg with premium: 161.3
-1        S  NIFTY28NOV24P24900   25   Initial PE Sell with premium: 436.0
-2        S  NIFTY28NOV24C24900   25  Initial CE Sell with premium: 426.45
-3        B  NIFTY28NOV24C25800   25   Initial CE Hedg with premium: 94.65
-2024-10-21 19:44:44,855 - Auto_Trader - INFO - Cash required: 255.95000000000002
-2024-10-21 19:44:44,876 - Auto_Trader - INFO -  Placing Order: B, NIFTY28NOV24P24000, 25, Initial PE Hedg with premium: 161.3
-2024-10-21 19:44:44,876 - Auto_Trader - INFO - TEST ORDER PLACEMENT : B, NIFTY28NOV24P24000, 25, Initial PE Hedg with premium: 161.3
-2024-10-21 19:44:44,877 - Auto_Trader - INFO -  Placing Order: S, NIFTY28NOV24P24900, 25, Initial PE Sell with premium: 436.0
-2024-10-21 19:44:44,877 - Auto_Trader - INFO - TEST ORDER PLACEMENT : S, NIFTY28NOV24P24900, 25, Initial PE Sell with premium: 436.0
-2024-10-21 19:44:44,878 - Auto_Trader - INFO -  Placing Order: S, NIFTY28NOV24C24900, 25, Initial CE Sell with premium: 426.45
-2024-10-21 19:44:44,878 - Auto_Trader - INFO - TEST ORDER PLACEMENT : S, NIFTY28NOV24C24900, 25, Initial CE Sell with premium: 426.45
-2024-10-21 19:44:44,878 - Auto_Trader - INFO -  Placing Order: B, NIFTY28NOV24C25800, 25, Initial CE Hedg with premium: 94.65
-2024-10-21 19:44:44,879 - Auto_Trader - INFO - TEST ORDER PLACEMENT : B, NIFTY28NOV24C25800, 25, Initial CE Hedg with premium: 94.65
+2024-10-21 23:27:30,209 - Auto_Trader - INFO - Login successful!
+2024-10-21 23:27:30,334 - Auto_Trader - INFO - DELTA: 34.17% , M2M: -10
+2024-10-21 23:27:30,334 - Auto_Trader - INFO - <<<<<<<< ADJUSTMENT MADE >>>>>>>>>>>>
+2024-10-21 23:27:34,659 - Auto_Trader - INFO - TEST ORDER PLACEMENT : B, NIFTY28NOV24C24900, 25, Original CE Sell
+2024-10-21 23:27:34,660 - Auto_Trader - INFO - TEST ORDER PLACEMENT : S, NIFTY28NOV24C25400, 25, Original CE Hedge
+2024-10-21 23:27:34,660 - Auto_Trader - INFO - TEST ORDER PLACEMENT : B, NIFTY28NOV24C25900, 25, Adjustment Hedge order
+2024-10-21 23:27:34,660 - Auto_Trader - INFO - TEST ORDER PLACEMENT : S, NIFTY28NOV24C25400, 25, Adjustment Sell order

@@ -9,33 +9,35 @@ import pyotp
 import pandas as pd
 from datetime import datetime, timedelta, date
 
+### Add condition for exception, when index moves way beyond adjustment
+import yaml
+with open('config.yml', 'r') as file:
+    config = yaml.safe_load(file)
+
+live = config['live']
+target_profit = config['target_profit']
+stop_loss = config['stop_loss']
+enter_today = config['enter_today']
+delta_threshold = config['delta_threshold']
+nse_sym_path = config['nse_sym_path']
+nfo_sym_path = config['nfo_sym_path']
+Expiry = config['Expiry']
+Symbol = config['Symbol']
+nifty_nse_token = config['nifty_nse_token']
+min_strike_price = config['min_strike_price']
+max_strike_price = config['max_strike_price']
+lot_size = config['lot_size']
+lots = config['lots']
+
 # Global variables
 #  Initialize the API
-live = False
-enter_today=True
+
 api = ShoonyaApiPy()
-nse_sym_path = "NSE_symbols.txt"
-nfo_sym_path = "NFO_symbols.txt"
+
 symbolDf= None
-cedf=None
-pedf=None
-Expiry = "28-NOV-2024"
-Symbol = "NIFTY"
-nifty_nse_token = "26000"
-# positions_df=None
-min_strike_price = 23000
-max_strike_price = 27000
-lot_size=25
-lots = 1  # Replace with the number of lots you want to trade
-day_m2m=0
-delta_threshold=40
-base = "FUTURE" # "FUTURE" or "CURRENT"
-
-target_profit = 99999999999999  # Replace with your target profit
-stop_loss = -9999999999999  # Replace with your stop loss
-
 edate = Expiry.split("-")
 tsym_prefix= Symbol+edate[0]+edate[1]+edate[2][-2:]
+email_subject = "Trade Analytics"
 
 # Logging Setup
 logger = logging.getLogger('Auto_Trader')
@@ -85,7 +87,10 @@ def get_current_positions():
     open_pos_data=[]
     ret = api.get_positions()
     if ret is None:
-        return None, None
+        # Return test positions
+        positions_df= pd.read_csv("test_position.csv")
+        return positions_df, -10
+        # return None, None
     else:
         mtm = 0
         pnl = 0
@@ -100,7 +105,7 @@ def get_current_positions():
                     buy_sell = 'S'
                 elif int(i['netqty'])>0:
                     buy_sell = 'B'
-                open_pos_data.append({'buy_sell': buy_sell, 'tsym':i['tsym'], 'netqty': i['netqty'], 'remarks':'Existing Order', 'netavgprc': i['netavgprc'], 'lp':i['lp'], 'ord_type':i['tsym'][12]})
+                open_pos_data.append({'buy_sell': buy_sell, 'tsym':i['tsym'], 'qty': i['netqty'], 'remarks':'Existing Order', 'netavgprc': i['netavgprc'], 'lp':i['lp'], 'ord_type':i['tsym'][12]})
         positions_df = pd.DataFrame(open_pos_data)
     
         return positions_df, day_m2m
@@ -116,7 +121,7 @@ def exit_positions(orders_df):
     # {'buy_sell':'B', 'tsym': pe_hedge, 'qty': lots*lot_size, 'remarks':f'Initial PE Hedg with premium: {pe_hedge_premium}'},
     # place_order(buy_sell, tsym, qty, remarks="regular order")
     for i, order in orders_df.iterrows():
-        rev_buy_sell = {"B": "C", "C": "B"}.get(order['buy_sell'])
+        rev_buy_sell = {"B": "S", "S": "B"}.get(order['buy_sell'])
         place_order(rev_buy_sell, order['tsym'], abs(int(order['qty'])), order['remarks'])
 
 def get_Option_Chain(type):
@@ -230,6 +235,8 @@ def enter_trade():
     # TODO: Get margin requirement for the trades
     # Execute trade:
     execute_basket(Comb_ord_df)
+    email_subject = '<<<<<<<< ENTRY MADE >>>>>>>>>>>>'
+    logger.info(email_subject)
 
     return
 
@@ -241,7 +248,6 @@ def place_order(buy_sell, tsym, qty, remarks="regular order"):
     price=0
     trigger_price = None
     retention='DAY'
-    # logger.info(f" Placing Order: {buy_sell}, {tsym}, {qty}, {remarks}")
     if live:
         ret = api.place_order(buy_sell, prd_type, exchange, tsym, qty, disclosed_qty, price_type, price, trigger_price, retention, remarks)
         if ret['stat']=="Ok":
@@ -300,22 +306,31 @@ def monitor_and_execute_trades(target_profit, stop_loss, lots):
     # Exit all Trades if Target achieved or Stop loss hit
     if m2m> target_profit:
         logger.info("Target Profit Acheived. Exit Trade")
-        exit_positions(positions_df[['buy_sell','tsym','netqty','remarks']])
+        exit_positions(positions_df[['buy_sell','tsym','qty','remarks']])
+        email_subject = '<<<<<<<< TARGET PROFIT ACHIEVED. EXIT TRADE >>>>>>>>>>>>'
+        return
     elif m2m < stop_loss:
         logger.info("Stop Loss hit. Exit Trade")
-        exit_positions(positions_df[['buy_sell','tsym','netqty','remarks']])
-
-
+        email_subject = '<<<<<<<< STOP LOSS HIT. EXIT TRADE >>>>>>>>>>>>'
+        exit_positions(positions_df[['buy_sell','tsym','qty','remarks']])
+        return
 
     # Step 4: Check adjustment signal
     delta, pltp, cltp, profit_leg, loss_leg, strategy, pe_hedge_diff, ce_hedge_diff = calculate_delta(positions_df)
 
+    print(delta, pltp, cltp, profit_leg, loss_leg, strategy, pe_hedge_diff, ce_hedge_diff)
+
+    email_subject = f'DELTA: {delta}% , M2M: {m2m}'
+    logger.info(email_subject)
+
     if delta>delta_threshold:
+        email_subject = '<<<<<<<< ADJUSTMENT MADE >>>>>>>>>>>>'
+        logger.info(email_subject)
         # If Iron Fly
         if strategy=="IF":
             # Exit the loss making leg
-            exit_order_df = positions_df[positions_df.ord_type==loss_leg][['buy_sell','tsym','netqty','remarks']]
-            exit_positions(exit_order_df)
+            exit_order_df = positions_df[positions_df.ord_type==loss_leg][['buy_sell','tsym','qty','remarks']]
+            # exit_positions(exit_order_df)
             #Find new legs
             if loss_leg=="C":
                 search_ltp = pltp
@@ -332,15 +347,15 @@ def monitor_and_execute_trades(target_profit, stop_loss, lots):
 
         elif strategy=="IC":
             #Exit Profit making leg
-            exit_order_df = positions_df[positions_df.ord_type==profit_leg][['buy_sell','tsym','netqty','remarks']]
-            exit_positions(exit_order_df)
+            exit_order_df = positions_df[positions_df.ord_type==profit_leg][['buy_sell','tsym','qty','remarks']]
+            # exit_positions(exit_order_df)
             #Find new legs
             if profit_leg=="C":
                 search_ltp = pltp
                 odf = get_Option_Chain("CE")
                 L_tsym, lp = get_nearest_price_strike(odf, search_ltp)
                 # Find loss_leg ATM
-                loss_atm = int(positions_df[(positions_df.ord_type==loss_leg) & (positions_df.buy_sell=="S")])
+                loss_atm = int(positions_df[(positions_df.ord_type==loss_leg) & (positions_df.buy_sell=="S")].iloc[0]['tsym'][13:])
                 new_strike_price = int(L_tsym[13:]) if int(L_tsym[13:])> loss_atm else loss_atm
                 H_strike = new_strike_price+ce_hedge_diff
             else:
@@ -348,14 +363,16 @@ def monitor_and_execute_trades(target_profit, stop_loss, lots):
                 odf = get_Option_Chain("PE")
                 L_tsym, lp = get_nearest_price_strike(odf, search_ltp)
                 # Find loss_leg ATM
-                loss_atm = int(positions_df[(positions_df.ord_type==loss_leg) & (positions_df.buy_sell=="S")])
+                loss_atm = int(positions_df[(positions_df.ord_type==loss_leg) & (positions_df.buy_sell=="S")].iloc[0]['tsym'][13:])
                 new_strike_price = int(L_tsym[13:]) if int(L_tsym[13:])< loss_atm else loss_atm
                 H_strike = new_strike_price-pe_hedge_diff
 
             H_tsym, lp = get_nearest_strike_strike(odf, H_strike)
 
-            # Place leg and hedge orders
-            # Place leg and hedge orders
+        #Exit Legs:
+        exit_positions(exit_order_df)
+        # Place leg and hedge orders
+        # Place leg and hedge orders
         place_order("B", H_tsym, lots*lot_size, remarks="Adjustment Hedge order")
         place_order("S", L_tsym, lots*lot_size, remarks="Adjustment Sell order")
 
@@ -394,6 +411,7 @@ def login():
     api_secret=os.getenv("api_secret")
     imei=os.getenv("imei")
 
+  
     twoFA = pyotp.TOTP(TOKEN).now()
     login_response = api.login(userid=userid, password=password, twoFA=twoFA, vendor_code=vendor_code, api_secret=api_secret, imei=imei)   
     if login_response['stat'] == 'Ok':
@@ -411,9 +429,8 @@ if __name__=="__main__":
     open('logs/app.log', 'w').close()
     monitor_and_execute_trades(target_profit=target_profit, stop_loss=stop_loss, lots=lots)
     # Send mail with log information
-    subject = "Monitor Log"
+    subject = email_subject
     with open('logs/app.log', 'r') as f:
         body = f.read() 
         # Send the email
         send_custom_email(subject, body)
-

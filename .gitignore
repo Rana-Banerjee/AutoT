@@ -5,3 +5,4 @@ monitor_local.py
 *.ipynb
 test.py
 app.log
+test_position.csv
