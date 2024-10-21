@@ -1,0 +1,29 @@
+2024-10-20 23:30:07,713 - Auto_Trader - INFO - Login successful!
+2024-10-20 23:49:09,573 - Auto_Trader - INFO - Login successful!
+2024-10-21 00:19:52,052 - Auto_Trader - INFO - Login successful!
+2024-10-21 10:50:46,964 - Auto_Trader - INFO - Login successful!
+2024-10-21 10:52:36,505 - Auto_Trader - INFO - Login successful!
+2024-10-21 10:55:29,749 - Auto_Trader - INFO - Login successful!
+2024-10-21 11:27:08,310 - Auto_Trader - INFO - Login successful!
+2024-10-21 11:33:56,580 - Auto_Trader - INFO - Login successful!
+2024-10-21 11:34:06,619 - Auto_Trader - INFO - Positions based on Future Price
+2024-10-21 11:34:06,635 - Auto_Trader - INFO - PE_Hedge : P e qty H
+2024-10-21 11:34:06,635 - Auto_Trader - INFO - PE_Sell : P e qty S
+2024-10-21 11:34:06,636 - Auto_Trader - INFO - CE_Sell : C e qty S
+2024-10-21 11:34:06,636 - Auto_Trader - INFO - CE_Hedge : C e qty H
+2024-10-21 11:34:06,636 - Auto_Trader - INFO - Getting Current Price
+2024-10-21 11:34:06,983 - Auto_Trader - INFO - PE_Hedge : P e qty H
+2024-10-21 11:34:06,984 - Auto_Trader - INFO - PE_Sell : P e qty S
+2024-10-21 11:34:06,984 - Auto_Trader - INFO - CE_Sell : C e qty S
+2024-10-21 11:34:06,984 - Auto_Trader - INFO - CE_Hedge : C e qty H
+2024-10-21 11:36:07,246 - Auto_Trader - INFO - Login successful!
+2024-10-21 11:36:18,681 - Auto_Trader - INFO - Positions based on Future Price
+2024-10-21 11:36:18,695 - Auto_Trader - INFO - PE_Hedge : B 25 qty NIFTY28NOV24P24100
+2024-10-21 11:36:18,695 - Auto_Trader - INFO - PE_Sell : S 25 qty NIFTY28NOV24P24900
+2024-10-21 11:36:18,695 - Auto_Trader - INFO - CE_Sell : S 25 qty NIFTY28NOV24C24900
+2024-10-21 11:36:18,696 - Auto_Trader - INFO - CE_Hedge : B 25 qty NIFTY28NOV24C25800
+2024-10-21 11:36:18,696 - Auto_Trader - INFO - Getting Current Price
+2024-10-21 11:36:18,817 - Auto_Trader - INFO - PE_Hedge : B 25 qty NIFTY28NOV24P23900
+2024-10-21 11:36:18,818 - Auto_Trader - INFO - PE_Sell : S 25 qty NIFTY28NOV24P24800
+2024-10-21 11:36:18,818 - Auto_Trader - INFO - CE_Sell : S 25 qty NIFTY28NOV24C24800
+2024-10-21 11:36:18,818 - Auto_Trader - INFO - CE_Hedge : B 25 qty NIFTY28NOV24C25600
