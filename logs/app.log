@@ -1,41 +1,37 @@
-2024-10-20 23:30:07,713 - Auto_Trader - INFO - Login successful!
-2024-10-20 23:49:09,573 - Auto_Trader - INFO - Login successful!
-2024-10-21 00:19:52,052 - Auto_Trader - INFO - Login successful!
-2024-10-21 10:50:46,964 - Auto_Trader - INFO - Login successful!
-2024-10-21 10:52:36,505 - Auto_Trader - INFO - Login successful!
-2024-10-21 10:55:29,749 - Auto_Trader - INFO - Login successful!
-2024-10-21 11:27:08,310 - Auto_Trader - INFO - Login successful!
-2024-10-21 11:33:56,580 - Auto_Trader - INFO - Login successful!
-2024-10-21 11:34:06,619 - Auto_Trader - INFO - Positions based on Future Price
-2024-10-21 11:34:06,635 - Auto_Trader - INFO - PE_Hedge : P e qty H
-2024-10-21 11:34:06,635 - Auto_Trader - INFO - PE_Sell : P e qty S
-2024-10-21 11:34:06,636 - Auto_Trader - INFO - CE_Sell : C e qty S
-2024-10-21 11:34:06,636 - Auto_Trader - INFO - CE_Hedge : C e qty H
-2024-10-21 11:34:06,636 - Auto_Trader - INFO - Getting Current Price
-2024-10-21 11:34:06,983 - Auto_Trader - INFO - PE_Hedge : P e qty H
-2024-10-21 11:34:06,984 - Auto_Trader - INFO - PE_Sell : P e qty S
-2024-10-21 11:34:06,984 - Auto_Trader - INFO - CE_Sell : C e qty S
-2024-10-21 11:34:06,984 - Auto_Trader - INFO - CE_Hedge : C e qty H
-2024-10-21 11:36:07,246 - Auto_Trader - INFO - Login successful!
-2024-10-21 11:36:18,681 - Auto_Trader - INFO - Positions based on Future Price
-2024-10-21 11:36:18,695 - Auto_Trader - INFO - PE_Hedge : B 25 qty NIFTY28NOV24P24100
-2024-10-21 11:36:18,695 - Auto_Trader - INFO - PE_Sell : S 25 qty NIFTY28NOV24P24900
-2024-10-21 11:36:18,695 - Auto_Trader - INFO - CE_Sell : S 25 qty NIFTY28NOV24C24900
-2024-10-21 11:36:18,696 - Auto_Trader - INFO - CE_Hedge : B 25 qty NIFTY28NOV24C25800
-2024-10-21 11:36:18,696 - Auto_Trader - INFO - Getting Current Price
-2024-10-21 11:36:18,817 - Auto_Trader - INFO - PE_Hedge : B 25 qty NIFTY28NOV24P23900
-2024-10-21 11:36:18,818 - Auto_Trader - INFO - PE_Sell : S 25 qty NIFTY28NOV24P24800
-2024-10-21 11:36:18,818 - Auto_Trader - INFO - CE_Sell : S 25 qty NIFTY28NOV24C24800
-2024-10-21 11:36:18,818 - Auto_Trader - INFO - CE_Hedge : B 25 qty NIFTY28NOV24C25600
-2024-10-21 11:41:56,331 - Auto_Trader - INFO - Login successful!
-2024-10-21 11:42:06,765 - Auto_Trader - INFO - Positions based on Future Price
-2024-10-21 11:42:06,782 - Auto_Trader - INFO - PE_Hedge : B 25 qty NIFTY28NOV24P24100
-2024-10-21 11:42:06,782 - Auto_Trader - INFO - PE_Sell : S 25 qty NIFTY28NOV24P24900
-2024-10-21 11:42:06,782 - Auto_Trader - INFO - CE_Sell : S 25 qty NIFTY28NOV24C24900
-2024-10-21 11:42:06,783 - Auto_Trader - INFO - CE_Hedge : B 25 qty NIFTY28NOV24C25800
-2024-10-21 11:42:06,783 - Auto_Trader - INFO - Getting Current Price
-2024-10-21 11:42:06,896 - Auto_Trader - INFO - Positions based on Current Price
-2024-10-21 11:42:06,911 - Auto_Trader - INFO - PE_Hedge : B 25 qty NIFTY28NOV24P23900
-2024-10-21 11:42:06,911 - Auto_Trader - INFO - PE_Sell : S 25 qty NIFTY28NOV24P24800
-2024-10-21 11:42:06,912 - Auto_Trader - INFO - CE_Sell : S 25 qty NIFTY28NOV24C24800
-2024-10-21 11:42:06,912 - Auto_Trader - INFO - CE_Hedge : B 25 qty NIFTY28NOV24C25700
+2024-10-21 19:44:25,820 - Auto_Trader - INFO - Login successful!
+2024-10-21 19:44:44,520 - Auto_Trader - INFO - Positions based on Future Price
+2024-10-21 19:44:44,535 - Auto_Trader - INFO -   buy_sell                tsym  qty                               remarks
+0        B  NIFTY28NOV24P24000   25   Initial PE Hedg with premium: 161.3
+1        S  NIFTY28NOV24P24900   25   Initial PE Sell with premium: 436.0
+2        S  NIFTY28NOV24C24900   25  Initial CE Sell with premium: 426.45
+3        B  NIFTY28NOV24C25800   25   Initial CE Hedg with premium: 94.65
+2024-10-21 19:44:44,572 - Auto_Trader - INFO - Cash required: 255.95000000000002
+2024-10-21 19:44:44,705 - Auto_Trader - INFO - Positions based on Current Price
+2024-10-21 19:44:44,715 - Auto_Trader - INFO -   buy_sell                tsym  qty                               remarks
+0        B  NIFTY28NOV24P23900   25  Initial PE Hedg with premium: 144.75
+1        S  NIFTY28NOV24P24800   25   Initial PE Sell with premium: 406.2
+2        S  NIFTY28NOV24C24800   25   Initial CE Sell with premium: 486.7
+3        B  NIFTY28NOV24C25700   25  Initial CE Hedg with premium: 120.15
+2024-10-21 19:44:44,748 - Auto_Trader - INFO - Cash required: 264.9
+2024-10-21 19:44:44,762 - Auto_Trader - INFO - Positions based on Support/Resistance
+2024-10-21 19:44:44,771 - Auto_Trader - INFO -   buy_sell                tsym  qty                               remarks
+0        B  NIFTY28NOV24P24400   25   Initial PE Hedg with premium: 253.1
+1        S  NIFTY28NOV24P25300   25  Initial PE Sell with premium: 636.85
+2        S  NIFTY28NOV24C25300   25  Initial CE Sell with premium: 243.05
+3        B  NIFTY28NOV24C26200   25   Initial CE Hedg with premium: 46.45
+2024-10-21 19:44:44,804 - Auto_Trader - INFO - Cash required: 299.55
+2024-10-21 19:44:44,817 - Auto_Trader - INFO - Combined Positions
+2024-10-21 19:44:44,827 - Auto_Trader - INFO -   buy_sell                tsym  qty                               remarks
+0        B  NIFTY28NOV24P24000   25   Initial PE Hedg with premium: 161.3
+1        S  NIFTY28NOV24P24900   25   Initial PE Sell with premium: 436.0
+2        S  NIFTY28NOV24C24900   25  Initial CE Sell with premium: 426.45
+3        B  NIFTY28NOV24C25800   25   Initial CE Hedg with premium: 94.65
+2024-10-21 19:44:44,855 - Auto_Trader - INFO - Cash required: 255.95000000000002
+2024-10-21 19:44:44,876 - Auto_Trader - INFO -  Placing Order: B, NIFTY28NOV24P24000, 25, Initial PE Hedg with premium: 161.3
+2024-10-21 19:44:44,876 - Auto_Trader - INFO - TEST ORDER PLACEMENT : B, NIFTY28NOV24P24000, 25, Initial PE Hedg with premium: 161.3
+2024-10-21 19:44:44,877 - Auto_Trader - INFO -  Placing Order: S, NIFTY28NOV24P24900, 25, Initial PE Sell with premium: 436.0
+2024-10-21 19:44:44,877 - Auto_Trader - INFO - TEST ORDER PLACEMENT : S, NIFTY28NOV24P24900, 25, Initial PE Sell with premium: 436.0
+2024-10-21 19:44:44,878 - Auto_Trader - INFO -  Placing Order: S, NIFTY28NOV24C24900, 25, Initial CE Sell with premium: 426.45
+2024-10-21 19:44:44,878 - Auto_Trader - INFO - TEST ORDER PLACEMENT : S, NIFTY28NOV24C24900, 25, Initial CE Sell with premium: 426.45
+2024-10-21 19:44:44,878 - Auto_Trader - INFO -  Placing Order: B, NIFTY28NOV24C25800, 25, Initial CE Hedg with premium: 94.65
+2024-10-21 19:44:44,879 - Auto_Trader - INFO - TEST ORDER PLACEMENT : B, NIFTY28NOV24C25800, 25, Initial CE Hedg with premium: 94.65

@@ -1,7 +1,5 @@
-import datetime
 import logging
 from logging.handlers import RotatingFileHandler
-import os
 from api_helper import ShoonyaApiPy
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -9,29 +7,35 @@ from email.mime.text import MIMEText
 import os
 import pyotp
 import pandas as pd
-from datetime import datetime, date
+from datetime import datetime, timedelta, date
 
 # Global variables
 #  Initialize the API
+live = False
+enter_today=True
 api = ShoonyaApiPy()
+nse_sym_path = "NSE_symbols.txt"
+nfo_sym_path = "NFO_symbols.txt"
 symbolDf= None
 cedf=None
 pedf=None
 Expiry = "28-NOV-2024"
 Symbol = "NIFTY"
 nifty_nse_token = "26000"
-CEstrikedf=None
-PEstrikedf=None
-positions_data=[]
+# positions_df=None
 min_strike_price = 23000
 max_strike_price = 27000
 lot_size=25
 lots = 1  # Replace with the number of lots you want to trade
+day_m2m=0
+delta_threshold=40
+base = "FUTURE" # "FUTURE" or "CURRENT"
 
-target_profit = 1000  # Replace with your target profit
-stop_loss = -500  # Replace with your stop loss
-# IC_Delta_Threshold=0.4
-# IF_Delta_Threshold=0.5
+target_profit = 99999999999999  # Replace with your target profit
+stop_loss = -9999999999999  # Replace with your stop loss
+
+edate = Expiry.split("-")
+tsym_prefix= Symbol+edate[0]+edate[1]+edate[2][-2:]
 
 # Logging Setup
 logger = logging.getLogger('Auto_Trader')
@@ -74,89 +78,61 @@ def send_custom_email(subject, body):
         server.quit()
 
 
-def calculate_total_profit_loss(positions_data):
-    """
-    Calculate the total profit/loss for all positions, taking into account whether
-    the position is a SELL or a BUY.
-    
-    :param positions_data: List of dictionaries representing open positions.
-                           Each position should include 'entry_price', 'ltp', 
-                           'quantity', and 'side' ('SELL' or 'BUY').
-    :return: Total profit or loss.
-    """
-    total_profit_loss = 0
-    
-    for pos in positions_data:
-        entry_price = pos['entry_price']
-        ltp = pos['ltp']
-        quantity = pos['quantity']
-        side = pos['side']  # 'SELL' or 'BUY'
-        
-        # Calculate profit/loss based on whether the position is a SELL or a BUY
-        if side == 'SELL':
-            # For SELL positions, profit increases as LTP decreases
-            profit_loss = (entry_price - ltp) * quantity
-        elif side == 'BUY':
-            # For BUY positions, profit increases as LTP increases
-            profit_loss = (ltp - entry_price) * quantity
-        else:
-            raise ValueError(f"Unknown position side: {side}")
-        
-        total_profit_loss += profit_loss
-    
-    return total_profit_loss
-
-
 # Step 1: Preprocess data and extract necessary information
-def preprocess_positions():
+def get_current_positions():
+    global day_m2m
     # Fetch the latest data (positions, LTP, etc.)
-    positions_data = api.get_positions()  # Placeholder API call
-    future_price = api.get_index_future_price('INDEX_NAME')  # Replace with actual index
+    open_pos_data=[]
+    ret = api.get_positions()
+    if ret is None:
+        return None, None
+    else:
+        mtm = 0
+        pnl = 0
+        for i in ret:
+            mtm += float(i['urmtom'])
+            pnl += float(i['rpnl'])
+            day_m2m = mtm + pnl
+            if int(i['netqty'])!=0:
+                # {'buy_sell':'B', 'tsym': pe_hedge, 'qty': lots*lot_size, 'remarks':f'Initial PE Hedg with premium: {pe_hedge_premium}'},
+                # rev_buy_sell = {"B": "C", "C": "B"}.get(i['buy_sell'])
+                if int(i['netqty'])<0:
+                    buy_sell = 'S'
+                elif int(i['netqty'])>0:
+                    buy_sell = 'B'
+                open_pos_data.append({'buy_sell': buy_sell, 'tsym':i['tsym'], 'netqty': i['netqty'], 'remarks':'Existing Order', 'netavgprc': i['netavgprc'], 'lp':i['lp'], 'ord_type':i['tsym'][12]})
+        positions_df = pd.DataFrame(open_pos_data)
     
-    # TO DO
-    # Extract entry price and LTP of options in open positions
-    # Example:
-    # position_data = [{'symbol': 'NIFTY21NOV17500CE', 'entry_price': 100, 'ltp': 120}, ...]
-    
-    profit_loss = calculate_total_profit_loss(positions_data)
-    
-    return positions_data, future_price, profit_loss
+        return positions_df, day_m2m
 
-# Step 2: Check current profit/loss and exit if target or stop loss hit
-def check_profit_loss(profit_loss, target_profit, stop_loss):
-    if profit_loss >= target_profit or profit_loss <= stop_loss:
-        print("Target/Stop Loss reached, exiting all positions.")
-        # Exit all legs and close trade
-        exit_all_positions()
-        return True
-    return False
+def execute_basket(orders_df):
+    # {'buy_sell':'B', 'tsym': pe_hedge, 'qty': lots*lot_size, 'remarks':f'Initial PE Hedg with premium: {pe_hedge_premium}'},
+    # place_order(buy_sell, tsym, qty, remarks="regular order")
+    for i, order in orders_df.iterrows():
+        place_order(order['buy_sell'], order['tsym'], order['qty'], order['remarks'])
 
-def exit_all_positions():
-    # Add logic to exit all positions using Shoonya API
-    print("Exiting all positions...")
-    # Example API Call:
-    # shoonya_client.exit_positions()
 
-def calculate_breakeven_strikes(short_strike, total_premium):
-    """
-    Calculate the breakeven strike prices for the Iron Fly strategy, rounded to the nearest 100.
-    
-    :param short_strike: The strike price of the sold options (PE and CE, since they are the same)
-    :param total_premium: The total premium collected from selling the PE and CE options
-    :return: Tuple (lower_breakeven, upper_breakeven) rounded to the nearest 100s
-    """
-    # Calculate the breakeven prices
-    lower_breakeven = short_strike - total_premium
-    upper_breakeven = short_strike + total_premium
-    
-    # Round the breakeven prices to the nearest 100s
-    lower_breakeven_rounded = round(lower_breakeven / 100) * 100
-    upper_breakeven_rounded = round(upper_breakeven / 100) * 100
-    
-    return lower_breakeven_rounded, upper_breakeven_rounded
+def exit_positions(orders_df):
+    # {'buy_sell':'B', 'tsym': pe_hedge, 'qty': lots*lot_size, 'remarks':f'Initial PE Hedg with premium: {pe_hedge_premium}'},
+    # place_order(buy_sell, tsym, qty, remarks="regular order")
+    for i, order in orders_df.iterrows():
+        rev_buy_sell = {"B": "C", "C": "B"}.get(order['buy_sell'])
+        place_order(rev_buy_sell, order['tsym'], abs(int(order['qty'])), order['remarks'])
 
-def get_Option_Chain(df):
-    global CEstrikedf
+def get_Option_Chain(type):
+    global symbolDf
+    if symbolDf is None:
+        symbolDf = pd.read_csv(nfo_sym_path)
+        symbolDf['hundred_strikes'] = symbolDf['TradingSymbol'].apply(lambda x: x[-2:])
+    
+    df=symbolDf[
+        (symbolDf.OptionType==type) 
+        & (symbolDf.Symbol==Symbol)
+        & (symbolDf.Expiry==Expiry) 
+        & (symbolDf['hundred_strikes']=="00")
+        & (symbolDf['StrikePrice']>min_strike_price) & (symbolDf['StrikePrice']<max_strike_price)
+        ]
+    
     OList=[]
     for i in df.index:
         strikeInfo = df.loc[i]
@@ -166,228 +142,144 @@ def get_Option_Chain(df):
     Ostrikedf = pd.DataFrame(OList)
     return Ostrikedf
 
-def get_nearest_price_strike(ltp, df):
+def get_nearest_price_strike(df, ltp):
     df['price_diff']=abs(df['lp']-ltp)
-    df.sort_values(by='diff', inplace=True)
+    df.sort_values(by='price_diff', inplace=True)
     return df.iloc[0]['tsym'], df.iloc[0]['lp']
 
-def get_nearest_strike_strike(strike, df):
+def get_nearest_strike_strike(df, strike):
     df['strike_diff']=abs(df['StrikePrice']-strike)
     df.sort_values(by='strike_diff', inplace=True)
     return df.iloc[0]['tsym'], df.iloc[0]['lp']
 
-def get_initial_positions(base_strike_price):
-    ce_sell, ce_premium = get_nearest_strike_strike(base_strike_price, CEstrikedf)
-    pe_sell, pe_premium = get_nearest_strike_strike(base_strike_price, PEstrikedf)
+def get_support_resistence_atm(cedf,pedf):
+    cedf.sort_values(by='oi', ascending = False, inplace=True)
+    pedf.sort_values(by='oi', ascending = False, inplace=True)
+    support = int(pedf.iloc[0]['tsym'][13:])
+    support_oi = pedf.iloc[0]['oi']
+    resistance = int(cedf.iloc[0]['tsym'][13:])
+    resistance_oi = cedf.iloc[0]['oi']
+    if (support+resistance)/2 % 100 == 0.0:
+        atm = (support+resistance)/2
+    elif support_oi>resistance_oi:
+        atm = (support+resistance-100)/2
+    else:
+        atm = (support+resistance+100)/2
+    return atm
+
+def calculate_initial_positions(base_strike_price, CEOptdf, PEOptdf):
+    ce_sell, ce_premium = get_nearest_strike_strike(CEOptdf, base_strike_price)
+    pe_sell, pe_premium = get_nearest_strike_strike(PEOptdf, base_strike_price)
     tot_premium=pe_premium+ce_premium
     pe_breakeven = base_strike_price - tot_premium
     ce_breakeven = base_strike_price + tot_premium
-    ce_hedge, ce_hedge_premium = get_nearest_strike_strike(ce_breakeven, CEstrikedf)
-    pe_hedge, pe_hedge_premium = get_nearest_strike_strike(pe_breakeven, PEstrikedf)
-    response = {
-        'PE_Hedge':['B', 'P','NFO', pe_hedge, lots*lot_size, lots, 'MKT',0,None,'DAY', f'Initial PE Hedg with premium: {pe_hedge_premium}'],
-        'PE_Sell': ['S', 'P','NFO', pe_sell,  lots*lot_size, lots, 'MKT',0,None,'DAY', f'Initial PE Sell with premium: {pe_premium}'],
-        'CE_Sell': ['S', 'C','NFO', ce_sell,  lots*lot_size, lots, 'MKT',0,None,'DAY', f'Initial CE Sell with premium: {ce_premium}'],
-        'CE_Hedge':['B', 'C','NFO', ce_hedge, lots*lot_size, lots, 'MKT',0,None,'DAY', f'Initial CE Hedg with premium: {ce_hedge_premium}'],
-    }
-    print(response)
-    for res in response:
-        logger.info(f"{res} : {response[res][0]} {response[res][4]} qty {response[res][3]} | Premium: {response[res][10][30:]}")
-    return response
+    ce_hedge, ce_hedge_premium = get_nearest_strike_strike(CEOptdf, ce_breakeven)
+    pe_hedge, pe_hedge_premium = get_nearest_strike_strike(PEOptdf,pe_breakeven)
+    orders_df = pd.DataFrame([ 
+        {'buy_sell':'B', 'tsym': pe_hedge, 'qty': lots*lot_size, 'remarks':f'Initial PE Hedg with premium: {pe_hedge_premium}'},
+        {'buy_sell':'S', 'tsym': pe_sell,  'qty': lots*lot_size, 'remarks':f'Initial PE Sell with premium: {pe_premium}'},
+        {'buy_sell':'S', 'tsym': ce_sell,  'qty': lots*lot_size, 'remarks':f'Initial CE Sell with premium: {ce_premium}'},
+        {'buy_sell':'B', 'tsym': ce_hedge, 'qty': lots*lot_size, 'remarks':f'Initial CE Hedg with premium: {ce_hedge_premium}'},
+    ])
+    logger.info(orders_df)
+    logger.info(f"Cash required: {pe_hedge_premium+ ce_hedge_premium}")
+    print(orders_df)
+    print(f"Cash required: {pe_hedge_premium+ ce_hedge_premium}")
+    return orders_df
     
-# Step 3: Create initial positions (Day 1)
-def create_initial_positions():
-    global symbolDf, cedf, pedf, CEstrikedf, PEstrikedf
-    if symbolDf is None:
-        symbolDf = pd.read_csv("NFO_symbols.txt")
-        symbolDf['hundred_strikes'] = symbolDf['TradingSymbol'].apply(lambda x: x[-2:])
-        
-    cedf=symbolDf[
-        (symbolDf.OptionType=="CE") 
-        & (symbolDf.Symbol==Symbol)
-        & (symbolDf.Expiry==Expiry) 
-        & (symbolDf['hundred_strikes']=="00")
-        & (symbolDf['StrikePrice']>min_strike_price) & (symbolDf['StrikePrice']<max_strike_price)
-        ]
 
-    pedf=symbolDf[
-        (symbolDf.OptionType=="PE")
-        & (symbolDf.Symbol==Symbol)
-        & (symbolDf.Expiry==Expiry) 
-        & (symbolDf['hundred_strikes']=="00")
-        & (symbolDf['StrikePrice']>min_strike_price) 
-        & (symbolDf['StrikePrice']<max_strike_price)
-        ]
-    
-    if CEstrikedf is None:
-        print("Getting CE Option Chain...")
-        CEstrikedf=get_Option_Chain(cedf)
-    
-    if PEstrikedf is None:
-        print("Getting PE Option Chain...")
-        PEstrikedf=get_Option_Chain(pedf)
+def enter_trade():
+    # global CEstrikedf, PEstrikedf
+    print("Getting CE Option Chain...")
+    CEOptdf=get_Option_Chain("CE")
+    print("Getting PE Option Chain...")
+    PEOptdf=get_Option_Chain("PE")
 
     # Get initial trade basis future price
 
     print("Getting Future Price")
     future_price_df = symbolDf[(symbolDf.Symbol=="NIFTY")&(symbolDf.Expiry==Expiry) &(symbolDf['OptionType']=="XX")]
     res=api.get_quotes(exchange="NFO", token=str(future_price_df.iloc[0].Token))
-    future_price = float(res['lp'])
+    future_strike = float(res['lp'])
     print("Positions based on Future Price")
     logger.info("Positions based on Future Price")
-    F_init = get_initial_positions(future_price)
+    Fut_ord_df = calculate_initial_positions(future_strike, CEOptdf, PEOptdf)
 
     # Get initial trade basis current price
     print("Getting Current Price")
-    # current_price_df = symbolDf[(symbolDf.Symbol=="NIFTY 50")&(symbolDf.Expiry==Expiry) &(symbolDf['OptionType']=="XX")]
-    res=api.get_quotes(exchange="NSE", token=nifty_nse_token)
-    current_price = float(res['lp'])
+    nse_df = pd.read_csv(nse_sym_path)
+    nifty_nse_token = nse_df[(nse_df.Symbol=="Nifty 50")&(nse_df.Instrument=="INDEX")].iloc[0]['Token']
+    res=api.get_quotes(exchange="NSE", token=str(nifty_nse_token))
+    current_strike = float(res['lp'])
     print("Positions based on Current Price")
     logger.info("Positions based on Current Price")
-    C_init = get_initial_positions(current_price)
+    Curr_ord_df = calculate_initial_positions(current_strike, CEOptdf, PEOptdf)
+
+    # Get initial trade basis oi
+    print("Getting positions based on oi support/resistance")
+    atm = get_support_resistence_atm(CEOptdf,PEOptdf)
+    logger.info("Positions based on Support/Resistance")
+    Oi_ord_df = calculate_initial_positions(atm, CEOptdf, PEOptdf)
+
+    # Get initial trade basis combination
+    print("Getting combined position")
+    comb_atm = round((2*current_strike+future_strike+atm)/400,0)*100
+    logger.info("Combined Positions")
+    Comb_ord_df = calculate_initial_positions(comb_atm, CEOptdf, PEOptdf)
 
     # TODO: Get margin requirement for the trades
-    # req_margin = 1500
+    # Execute trade:
+    execute_basket(Comb_ord_df)
 
-    # logger.info(f"Trade details: Req Cash: {tot_buy_premiums}, Req Collateral: {req_margin/2} * 2, + Taxes&Fees")
-
-    api.logout()
-    logger.info("Logged out")
-    
     return
 
-def sell_option(option_type, strike_price, lots):
-    # Sell option logic using Shoonya API
-    print(f"Selling {lots} lots of {option_type} at {strike_price}")
-    # Example API Call:
-    # shoonya_client.sell_option(option_type, strike_price, lots)
-
-def buy_hedge(option_type, strike_price, lots):
-    # Buy hedge logic using Shoonya API
-    print(f"Buying hedge {lots} lots of {option_type} at {strike_price}")
-    # Example API Call:
-    # shoonya_client.buy_option(option_type, strike_price, lots)
-
-# Step 4: Check adjustment signal
-def check_adjustment_signal(ce_ltp, pe_ltp):
-    diff = round((abs(ce_ltp - pe_ltp) / (ce_ltp + pe_ltp)) * 100,2)
-    if diff > 40:
-        print(f"Adjustment signal detected. CE LTP: {ce_ltp}, PE LTP: {pe_ltp}, Diff: {diff}%")
-        return True
-    return False
-
-def find_closest_strike(option_chain, target_ltp, option_type):
-    """
-    Finds the strike price from the option chain where the LTP is closest to the target LTP.
-    
-    :param option_chain: List of options with 'strike_price' and 'ltp' for each option
-    :param target_ltp: The target LTP (ce_ltp or pe_ltp)
-    :param option_type: 'CE' or 'PE' to filter option chain
-    :return: Closest strike price
-    """
-    closest_strike = None
-    min_diff = float('inf')
-    
-    # Iterate through the option chain to find the strike price with LTP closest to target_ltp
-    for option in option_chain:
-        if option['type'] == option_type:  # Filter for CE or PE
-            strike_price = option['strike_price']
-            ltp = option['ltp']
-            diff = abs(ltp - target_ltp)
-            
-            if diff < min_diff:
-                min_diff = diff
-                closest_strike = strike_price
-    
-    return closest_strike
-
-# Step 5-7: Adjust positions based on signals
-def adjust_positions_based_on_strikes(positions_data):
-    # Extract the PE and CE options from the positions data
-    #TODO: Better way to find pe and ce entries
-    pe_position = next((pos for pos in positions_data if 'PE' in pos['symbol']), None)
-    ce_position = next((pos for pos in positions_data if 'CE' in pos['symbol']), None)
-    
-    if not pe_position or not ce_position:
-        print("Either PE or CE position is missing, cannot adjust.")
-        return
-    
-    #TODO: Better way to extract strike
-    pe_strike = int(pe_position['symbol'].split('PE')[0][-5:])
-    ce_strike = int(ce_position['symbol'].split('CE')[0][-5:])
-    
-    # Get the LTPs and entry prices
-    pe_ltp = pe_position['lp']
-    ce_ltp = ce_position['lp']
-
-    # netavgprc or cforgavgprc
-    pe_entry_price = pe_position['entry_price']
-    ce_entry_price = ce_position['entry_price']
-    
-    pe_profit_loss = (pe_ltp - pe_entry_price) * pe_position['quantity']
-    ce_profit_loss = (ce_ltp - ce_entry_price) * ce_position['quantity']
-    
-    if pe_strike == ce_strike:
-        print("PE and CE strikes are the same. Adjusting the loss-making option.")
-        
-        # Determine which option is loss-making
-        if pe_profit_loss < ce_profit_loss:
-            print(f"Exiting loss-making PE option @ {pe_strike}")
-            pe_hedge_diff = pe_position-pe_hedge_position
-            exit_position(pe_position)  # Exit PE and corresponding hedge
-            #TODO: Exit hedge
-            exit_position(pe_hedge_position) 
-            new_strike = find_closest_strike(option_chain, ce_ltp, 'PE')
-            sell_option('PE', new_strike, lots)
-            buy_hedge('PE', new_strike - pe_hedge_diff, lots)
+def place_order(buy_sell, tsym, qty, remarks="regular order"):
+    prd_type = 'M'
+    exchange = 'NFO' 
+    disclosed_qty= lot_size
+    price_type = 'MKT'
+    price=0
+    trigger_price = None
+    retention='DAY'
+    logger.info(f" Placing Order: {buy_sell}, {tsym}, {qty}, {remarks}")
+    if live:
+        ret = api.place_order(buy_sell, prd_type, exchange, tsym, qty, disclosed_qty, price_type, price, trigger_price, retention, remarks)
+        if ret['stat']=="Ok":
+            logger.info(f"Order successsful, Order No: {ret['norenordno']}") # Add reject reason
         else:
-            print(f"Exiting loss-making CE option @ {ce_strike}")
-            ce_hedge_diff = ce_hedge_position-ce_position
-            exit_position(ce_position)  # Exit CE and corresponding hedge
-            #TODO: Exit hedge
-            exit_position(ce_hedge_position) 
-            new_strike = find_closest_strike(option_chain, pe_ltp, 'CE')
-            sell_option('CE', new_strike, lots)
-            buy_hedge('CE', new_strike + ce_hedge_diff, lots)
-    
+            logger.info(f"Order failed, Error: {ret['emsg']}")
     else:
-        print("PE and CE strikes are different. Adjusting the profit-making option.")
-        #TODO: If new_strike crosses PE or CE then stop at IF
-        # Determine which option is profit-making
-        if pe_profit_loss > ce_profit_loss:
-            print(f"Exiting profit-making PE option @ {pe_strike}")
-            pe_hedge_diff = pe_position-pe_hedge_position
-            exit_position(pe_position)  # Exit PE and corresponding hedge
-            #TODO: Exit hedge
-            exit_position(pe_hedge_position) 
-            new_strike = max(find_closest_strike(option_chain, ce_ltp, 'PE'), pe_strike)  # Avoid lower PE strikes when selling CE
-            sell_option('PE', new_strike, lots)
-            buy_hedge('PE', new_strike - pe_hedge_diff, lots)
-        else:
-            print(f"Exiting profit-making CE option @ {ce_strike}")
-            ce_hedge_diff = ce_hedge_position-ce_position
-            exit_position(ce_position)  # Exit CE and corresponding hedge
-            #TODO: Exit hedge
-            exit_position(ce_hedge_position) 
-            new_strike = min(find_closest_strike(option_chain, pe_ltp, 'CE'), ce_strike)  # Avoid higher CE strikes when selling PE
-            sell_option('CE', new_strike, lots)
-            buy_hedge('CE', new_strike + ce_hedge_diff, lots)
+        logger.info(f"TEST ORDER PLACEMENT : {buy_sell}, {tsym}, {qty}, {remarks}")
+        print((f"TEST ORDER PLACEMENT : {buy_sell}, {tsym}, {qty}, {remarks}"))
 
-def exit_position(position):
-    # Logic to exit a position and its corresponding hedge
-    print(f"Exiting position for {position['symbol']}")
-    # Example API Call:
-    # shoonya_client.exit_position(position['symbol'])
+def calculate_delta(df):
+    # Verify that there are only 2 records
+    put_order = df[(df.buy_sell=="S")&(df.ord_type=="P")]
+    call_order = df[(df.buy_sell=="S")&(df.ord_type=="C")] 
 
-def sell_option(option_type, strike_price, lots):
-    print(f"Selling {lots} lots of {option_type} at {strike_price}")
-    # Example API Call:
-    # shoonya_client.sell_option(option_type, strike_price, lots)
+    pltp= float(put_order.iloc[0]['lp'])
+    cltp= float(call_order.iloc[0]['lp'])
+    delta = round(100*abs(pltp-cltp)/(pltp+cltp),2)
 
-def buy_hedge(option_type, strike_price, lots):
-    print(f"Buying hedge {lots} lots of {option_type} at {strike_price}")
-    # Example API Call:
-    # shoonya_client.buy_option(option_type, strike_price, lots)
+    pdiff = float(put_order.iloc[0]['netavgprc'])-pltp
+    cdiff = float(call_order.iloc[0]['netavgprc'])-cltp
+    profit_leg = "C" if  cdiff > pdiff else "P"
+    loss_leg = "P" if  cdiff > pdiff else "C"
+
+    pstrike = int(put_order.iloc[0]['tsym'][13:])
+    cstrike = int(call_order.iloc[0]['tsym'][13:])
+
+    strategy = 'IF' if pstrike==cstrike else 'IC'
+
+    put_hedge = df[(df.buy_sell=="B")&(df.ord_type=="P")]
+    call_hedge = df[(df.buy_sell=="B")&(df.ord_type=="C")] 
+
+    p_hedge_strike = int(put_hedge.iloc[0]['tsym'][13:])
+    c_hedge_strike = int(call_hedge.iloc[0]['tsym'][13:])
+    pe_hedge_diff= pstrike-p_hedge_strike
+    ce_hedge_diff= c_hedge_strike-cstrike
+
+    return delta, pltp, cltp, profit_leg, loss_leg, strategy, pe_hedge_diff, ce_hedge_diff
 
 # Main monitoring and trading function
 def monitor_and_execute_trades(target_profit, stop_loss, lots):
@@ -396,48 +288,103 @@ def monitor_and_execute_trades(target_profit, stop_loss, lots):
     login()
 
     # Get Positions
-    # positions_data, future_price, profit_loss = preprocess_positions()
+    positions_df, m2m = get_current_positions()
 
     # Step 3: Create positions on Day 1
-    if len(positions_data) == 0: # and day_is_first_day():
-        create_initial_positions()
-        api.logout()
-        return
-    
-    # Step 2: Check profit/loss
-    # if check_profit_loss(profit_loss, target_profit, stop_loss):
-    #     return  # Exit if target/stop loss hit
+    if positions_df is None:
+        if check_day_after_last_thursday() or enter_today:
+            enter_trade()
+            api.logout()
+            return
+
+    # Exit all Trades if Target achieved or Stop loss hit
+    if m2m> target_profit:
+        logger.info("Target Profit Acheived. Exit Trade")
+        exit_positions(positions_df[['buy_sell','tsym','netqty','remarks']])
+    elif m2m < stop_loss:
+        logger.info("Stop Loss hit. Exit Trade")
+        exit_positions(positions_df[['buy_sell','tsym','netqty','remarks']])
+
+
 
     # Step 4: Check adjustment signal
-    # TODO: find better way to find ce and pe ltps
-    # ce_ltp = next(pos['ltp'] for pos in positions_data if 'CE' in pos['symbol'])
-    # pe_ltp = next(pos['ltp'] for pos in positions_data if 'PE' in pos['symbol'])
-    # if check_adjustment_signal(ce_ltp, pe_ltp):
-    #     # Step 6-7: Adjust positions
-    #     adjust_positions_based_on_strikes(positions_data, ce_ltp, pe_ltp)
+    delta, pltp, cltp, profit_leg, loss_leg, strategy, pe_hedge_diff, ce_hedge_diff = calculate_delta(positions_df)
+
+    if delta>delta_threshold:
+        # If Iron Fly
+        if strategy=="IF":
+            # Exit the loss making leg
+            exit_order_df = positions_df[positions_df.ord_type==loss_leg][['buy_sell','tsym','netqty','remarks']]
+            exit_positions(exit_order_df)
+            #Find new legs
+            if loss_leg=="C":
+                search_ltp = pltp
+                odf = get_Option_Chain("CE")
+                L_tsym, lp = get_nearest_price_strike(odf, search_ltp)
+                H_strike = int(L_tsym[13:])+ce_hedge_diff 
+            else:
+                search_ltp = cltp
+                odf = get_Option_Chain("PE")
+                L_tsym, lp = get_nearest_price_strike(odf, search_ltp)
+                H_strike = int(L_tsym[13:])-pe_hedge_diff
+
+            H_tsym, lp = get_nearest_strike_strike(odf, H_strike)
+
+        elif strategy=="IC":
+            #Exit Profit making leg
+            exit_order_df = positions_df[positions_df.ord_type==profit_leg][['buy_sell','tsym','netqty','remarks']]
+            exit_positions(exit_order_df)
+            #Find new legs
+            if profit_leg=="C":
+                search_ltp = pltp
+                odf = get_Option_Chain("CE")
+                L_tsym, lp = get_nearest_price_strike(odf, search_ltp)
+                # Find loss_leg ATM
+                loss_atm = int(positions_df[(positions_df.ord_type==loss_leg) & (positions_df.buy_sell=="S")])
+                new_strike_price = int(L_tsym[13:]) if int(L_tsym[13:])> loss_atm else loss_atm
+                H_strike = new_strike_price+ce_hedge_diff
+            else:
+                search_ltp = cltp
+                odf = get_Option_Chain("PE")
+                L_tsym, lp = get_nearest_price_strike(odf, search_ltp)
+                # Find loss_leg ATM
+                loss_atm = int(positions_df[(positions_df.ord_type==loss_leg) & (positions_df.buy_sell=="S")])
+                new_strike_price = int(L_tsym[13:]) if int(L_tsym[13:])< loss_atm else loss_atm
+                H_strike = new_strike_price-pe_hedge_diff
+
+            H_tsym, lp = get_nearest_strike_strike(odf, H_strike)
+
+            # Place leg and hedge orders
+            # Place leg and hedge orders
+        place_order("B", H_tsym, lots*lot_size, remarks="Adjustment Hedge order")
+        place_order("S", L_tsym, lots*lot_size, remarks="Adjustment Sell order")
+
 
 # Function to check if today is the first day of the month (example)
 def get_last_thursday(year, month):
-    # Get the last day of the month
-    last_day_of_month = datetime.date(year, month, 1) + datetime.timedelta(days=32)
-    last_day_of_month = last_day_of_month.replace(day=1) - datetime.timedelta(days=1)
+    # Get the last day of the current month
+    next_month = month % 12 + 1
+    next_year = year + (month // 12)
+    last_day_of_month = date(next_year if next_month == 1 else year, next_month, 1) - timedelta(days=1)
     
     # Find the last Thursday of the month
     while last_day_of_month.weekday() != 3:  # Thursday is weekday 3
-        last_day_of_month -= datetime.timedelta(days=1)
+        last_day_of_month -= timedelta(days=1)
     
     return last_day_of_month
 
-def day_is_first_day():
-    today = datetime.date.today()
-    last_thursday = get_last_thursday(today.year, today.month)
+def check_day_after_last_thursday():
+    today = date.today()
     
-    # Calculate the Friday and Monday after the last Thursday
-    friday_after_last_thursday = last_thursday + datetime.timedelta(days=1)
-    monday_after_last_thursday = last_thursday + datetime.timedelta(days=4)
+    # Get the last Thursday of the current month
+    last_thursday_current_month = get_last_thursday(today.year, today.month)
     
-    # Check if today is either Friday or Monday after the last Thursday
-    return today == friday_after_last_thursday or today == monday_after_last_thursday
+    # If the last Thursday is in the future, get the last Thursday of the previous month
+    if last_thursday_current_month > today:
+        last_thursday_current_month = get_last_thursday(today.year, today.month - 1)
+    
+    # Check if today is one day after the last Thursday
+    return today == last_thursday_current_month + timedelta(days=1)
 
 def login():
     TOKEN = os.getenv("TOKEN")
@@ -453,12 +400,14 @@ def login():
         logger.info("Login successful!")
         print('Logged in sucessfully')
     else:
-        logger.info(f"Login failed: {login_response['message']}")
+        logger.info(f"Login failed: {login_response.get('emsg', 'Unknown error')}")
         print('Logged in failed')
 
 
 # Call the main function periodically to monitor and execute trades
 if __name__=="__main__":
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
     open('logs/app.log', 'w').close()
     monitor_and_execute_trades(target_profit=target_profit, stop_loss=stop_loss, lots=lots)
     # Send mail with log information
