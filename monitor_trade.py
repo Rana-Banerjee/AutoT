@@ -400,7 +400,7 @@ def monitor_and_execute_trades(target_profit, stop_loss, lots):
 
     # Step 3: Create positions on Day 1
     if len(positions_data) == 0: # and day_is_first_day():
-        create_initial_positions(lots)
+        create_initial_positions()
         api.logout()
         return
     
