@@ -196,7 +196,7 @@ def get_initial_positions(base_strike_price):
     return response
     
 # Step 3: Create initial positions (Day 1)
-def create_initial_positions(lots):
+def create_initial_positions():
     global symbolDf, cedf, pedf, CEstrikedf, PEstrikedf
     if symbolDf is None:
         symbolDf = pd.read_csv("NFO_symbols.txt")
@@ -239,7 +239,6 @@ def create_initial_positions(lots):
 
     # Get initial trade basis current price
     print("Getting Current Price")
-    logger.info("Getting Current Price")
     # current_price_df = symbolDf[(symbolDf.Symbol=="NIFTY 50")&(symbolDf.Expiry==Expiry) &(symbolDf['OptionType']=="XX")]
     res=api.get_quotes(exchange="NSE", token=nifty_nse_token)
     current_price = float(res['lp'])
@@ -253,6 +252,7 @@ def create_initial_positions(lots):
     # logger.info(f"Trade details: Req Cash: {tot_buy_premiums}, Req Collateral: {req_margin/2} * 2, + Taxes&Fees")
 
     api.logout()
+    logger.info("Logged out")
     
     return
 
@@ -459,6 +459,7 @@ def login():
 
 # Call the main function periodically to monitor and execute trades
 if __name__=="__main__":
+    open('logs/app.log', 'w').close()
     monitor_and_execute_trades(target_profit=target_profit, stop_loss=stop_loss, lots=lots)
     # Send mail with log information
     subject = "Monitor Log"
