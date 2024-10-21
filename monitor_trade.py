@@ -241,7 +241,7 @@ def place_order(buy_sell, tsym, qty, remarks="regular order"):
     price=0
     trigger_price = None
     retention='DAY'
-    logger.info(f" Placing Order: {buy_sell}, {tsym}, {qty}, {remarks}")
+    # logger.info(f" Placing Order: {buy_sell}, {tsym}, {qty}, {remarks}")
     if live:
         ret = api.place_order(buy_sell, prd_type, exchange, tsym, qty, disclosed_qty, price_type, price, trigger_price, retention, remarks)
         if ret['stat']=="Ok":
