@@ -364,30 +364,6 @@ def buy_hedge(option_type, strike_price, lots):
     # Example API Call:
     # shoonya_client.buy_option(option_type, strike_price, lots)
 
-def login():
-    TOKEN = 'HWWYD7R4EPSW4I23H4634R336XALMED6'
-    userid='FA417461' 
-    password='NewIden@123' 
-    vendor_code='FA417461_U'
-    api_secret='456cdec44eae982782376e77101a6698'
-    imei='abc1234'
-
-    # TOKEN = os.getenv("TOKEN")
-    # userid=os.getenv("userid")
-    # password=os.getenv("password")
-    # vendor_code=os.getenv("vendor_code")
-    # api_secret=os.getenv("api_secret")
-    # imei=os.getenv("imei")
-
-    twoFA = pyotp.TOTP(TOKEN).now()
-    login_response = api.login(userid=userid, password=password, twoFA=twoFA, vendor_code=vendor_code, api_secret=api_secret, imei=imei)   
-    if login_response['stat'] == 'Ok':
-        logger.info("Login successful!")
-        print('Logged in sucessfully')
-    else:
-        logger.info(f"Login failed: {login_response['message']}")
-        print('Logged in failed')
-
 # Main monitoring and trading function
 def monitor_and_execute_trades(target_profit, stop_loss, lots):
     # Login to Shoonya app
@@ -438,6 +414,25 @@ def day_is_first_day():
     # Check if today is either Friday or Monday after the last Thursday
     return today == friday_after_last_thursday or today == monday_after_last_thursday
 
+def login():
+    TOKEN = os.getenv("TOKEN")
+    userid=os.getenv("userid")
+    password=os.getenv("password")
+    vendor_code=os.getenv("vendor_code")
+    api_secret=os.getenv("api_secret")
+    imei=os.getenv("imei")
+
+    twoFA = pyotp.TOTP(TOKEN).now()
+    login_response = api.login(userid=userid, password=password, twoFA=twoFA, vendor_code=vendor_code, api_secret=api_secret, imei=imei)   
+    if login_response['stat'] == 'Ok':
+        logger.info("Login successful!")
+        print('Logged in sucessfully')
+    else:
+        logger.info(f"Login failed: {login_response['message']}")
+        print('Logged in failed')
+
+
 # Call the main function periodically to monitor and execute trades
-monitor_and_execute_trades(target_profit=target_profit, stop_loss=stop_loss, lots=lots)
+if __name__=="__main__":
+    monitor_and_execute_trades(target_profit=target_profit, stop_loss=stop_loss, lots=lots)
 
