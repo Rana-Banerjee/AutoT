@@ -11,16 +11,6 @@ import pyotp
 import pandas as pd
 from datetime import datetime, date
 
-# Logging Setup
-logger = logging.getLogger('Auto_Trader')
-logger.setLevel(logging.DEBUG)  # Set the logging level for the logger
-# Rotating file handler (file size limit of 1 MB, keeps 5 backup files)
-file_handler = RotatingFileHandler('logs/app.log', maxBytes=1_000_000, backupCount=5)
-# Create a logging format
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-
 # Global variables
 #  Initialize the API
 api = ShoonyaApiPy()
@@ -35,19 +25,54 @@ PEstrikedf=None
 positions_data=[]
 min_strike_price = 23000
 max_strike_price = 27000
+lot_size=25
+lots = 1  # Replace with the number of lots you want to trade
 
-IC_Delta_Threshold=0.4
-IF_Delta_Threshold=0.5
-script_name = 'NIFTY28NOV24'
-# Example usage:
 target_profit = 1000  # Replace with your target profit
 stop_loss = -500  # Replace with your stop loss
-lots = 1  # Replace with the number of lots you want to trade
-lot_size=25
+# IC_Delta_Threshold=0.4
+# IF_Delta_Threshold=0.5
 
-# Assuming you have the Shoonya API client initialized as 'shoonya_client'
-# Example:
-# shoonya_client = ShoonyaApiClient(api_key, user_id, password)
+# Logging Setup
+logger = logging.getLogger('Auto_Trader')
+logger.setLevel(logging.DEBUG)  # Set the logging level for the logger
+# Rotating file handler (file size limit of 1 MB, keeps 5 backup files)
+file_handler = RotatingFileHandler('logs/app.log', maxBytes=1_000_000, backupCount=5)
+# Create a logging format
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
+def send_custom_email(subject, body):
+    # Email configuration
+    sender_email = os.getenv("EMAIL_USER")
+    receiver_email = os.getenv("EMAIL_TO")
+    password = os.getenv("EMAIL_PASS")
+
+    logger.info(sender_email+"||"+receiver_email+"||"+password)
+
+    # Create email
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+    msg['Subject'] = subject
+
+    # Add body to email
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        # Connect to the Gmail SMTP server
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()  # Upgrade the connection to a secure encrypted SSL/TLS connection
+        server.login(sender_email, password)  # Login to your email account
+        text = msg.as_string()
+        server.sendmail(sender_email, receiver_email, text)  # Send the email
+        print("Email sent successfully!")
+    except Exception as e:
+        print(f"Error sending email: {e}")
+    finally:
+        server.quit()
+
 
 def calculate_total_profit_loss(positions_data):
     """
@@ -385,11 +410,11 @@ def monitor_and_execute_trades(target_profit, stop_loss, lots):
 
     # Step 4: Check adjustment signal
     # TODO: find better way to find ce and pe ltps
-    ce_ltp = next(pos['ltp'] for pos in positions_data if 'CE' in pos['symbol'])
-    pe_ltp = next(pos['ltp'] for pos in positions_data if 'PE' in pos['symbol'])
-    if check_adjustment_signal(ce_ltp, pe_ltp):
-        # Step 6-7: Adjust positions
-        adjust_positions_based_on_strikes(positions_data, ce_ltp, pe_ltp)
+    # ce_ltp = next(pos['ltp'] for pos in positions_data if 'CE' in pos['symbol'])
+    # pe_ltp = next(pos['ltp'] for pos in positions_data if 'PE' in pos['symbol'])
+    # if check_adjustment_signal(ce_ltp, pe_ltp):
+    #     # Step 6-7: Adjust positions
+    #     adjust_positions_based_on_strikes(positions_data, ce_ltp, pe_ltp)
 
 # Function to check if today is the first day of the month (example)
 def get_last_thursday(year, month):
@@ -435,4 +460,10 @@ def login():
 # Call the main function periodically to monitor and execute trades
 if __name__=="__main__":
     monitor_and_execute_trades(target_profit=target_profit, stop_loss=stop_loss, lots=lots)
+    # Send mail with log information
+    subject = "Monitor Log"
+    with open('logs/app.log', 'r') as f:
+        body = f.read() 
+        # Send the email
+        send_custom_email(subject, body)
 
