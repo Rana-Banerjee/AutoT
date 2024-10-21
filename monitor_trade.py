@@ -192,7 +192,7 @@ def get_initial_positions(base_strike_price):
     }
     print(response)
     for res in response:
-        logger.info(f"{res} : {response[res][0]} {response[res][4]} qty {response[res][3]}")
+        logger.info(f"{res} : {response[res][0]} {response[res][4]} qty {response[res][3]} | Premium: {response[res][10][31:]}")
     return response
     
 # Step 3: Create initial positions (Day 1)
