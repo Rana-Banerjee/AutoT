@@ -770,9 +770,9 @@ def get_delta_thresholds(logger, global_vars):
     # logger.info(f"ICT: {ICT} | IFT: {IFT}")
     return ICT, IFT
 
-def require_adjustments(logger, api, global_vars, strategy, delta, positions_df, profit_leg, loss_leg, pltp, cltp, symbol, expiry, minsp,maxsp):
+def require_adjustments(logger, api, global_vars, strategy, delta, positions_df, profit_leg, loss_leg, pltp, cltp, symbol, expiry, minsp,maxsp, IC_delta_threshold, IF_delta_threshold ):
 
-    IC_delta_threshold, IF_delta_threshold = get_delta_thresholds(logger, global_vars)
+    # IC_delta_threshold, IF_delta_threshold = get_delta_thresholds(logger, global_vars)
     ce_leg = positions_df[(positions_df['buy_sell']=='S')&(positions_df['ord_type']=='C')]
     pe_leg = positions_df[(positions_df['buy_sell']=='S')&(positions_df['ord_type']=='P')]
     ce_hedge = positions_df[(positions_df['buy_sell']=='B')&(positions_df['ord_type']=='C')]
