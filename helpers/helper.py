@@ -16,10 +16,15 @@ format_line="__________________________________________________________"
 
 
 def send_email(subject, global_vars):
+    #local_settings
+    sender_email = "rana1224.trade@gmail.com"
+    receiver_email = "rana1224.trade@gmail.com"
+    password = "vytprducklcqrxiq"
+
     # Email configuration
-    sender_email = os.getenv("EMAIL_USER")
-    receiver_email = os.getenv("EMAIL_TO")
-    password = os.getenv("EMAIL_PASS")
+    # sender_email = os.getenv("EMAIL_USER")
+    # receiver_email = os.getenv("EMAIL_TO")
+    # password = os.getenv("EMAIL_PASS")
 
     # Create email
     msg = MIMEMultipart()
@@ -54,12 +59,20 @@ def send_email(subject, global_vars):
 
 def login(logger):
     global userid
-    TOKEN = os.getenv("TOKEN")
-    userid=os.getenv("userid")
-    password=os.getenv("password")
-    vendor_code=os.getenv("vendor_code")
-    api_secret=os.getenv("api_secret")
-    imei=os.getenv("imei")
+    #local_settings
+    TOKEN = 'HWWYD7R4EPSW4I23H4634R336XALMED6'
+    userid='FA417461' 
+    password='NewIden@123' 
+    vendor_code='FA417461_U'
+    api_secret='456cdec44eae982782376e77101a6698'
+    imei='abc1234'
+
+    # TOKEN = os.getenv("TOKEN")
+    # userid=os.getenv("userid")
+    # password=os.getenv("password")
+    # vendor_code=os.getenv("vendor_code")
+    # api_secret=os.getenv("api_secret")
+    # imei=os.getenv("imei")
 
     twoFA = pyotp.TOTP(TOKEN).now()
     api = ShoonyaApiPy()
